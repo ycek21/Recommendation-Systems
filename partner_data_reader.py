@@ -7,21 +7,25 @@ class PartnerDataReader():
 
         self.partner_dataFrame = pd.read_csv(partner_filepath)
 
-        # timestamp changes to datetime
-        # self.partner_dataFrame['click_timestamp'] = self.partner_dataFrame['click_timestamp'].apply(
-        #     lambda x: str(pd.to_datetime(int(x), unit='s').date()))
-
         self.number_of_clicks_for_partner = len(self.partner_dataFrame)
 
-        # ! dowiedziec sie czy wykluczyc produkty z product id = -1
-        self.sum_of_sales_amount_in_euro = self.partner_dataFrame[
-            self.partner_dataFrame['SalesAmountInEuro'] >= 0]['SalesAmountInEuro'].sum()
+        self.sum_of_sales_amount_in_euro = self._sum_sales_amount_in_euro()
 
-        self.average_click_cost = (
-            0.12 * self.sum_of_sales_amount_in_euro) / self.number_of_clicks_for_partner
+        self.average_click_cost = self._calculate_click_cost()
 
         self.grouped_by_day = []
-        for index, group in self.partner_dataFrame.groupby('click_timestamp'):
-            self.grouped_by_day.append(group)
+
+        self._group_partner_dataFrame_by_day()
 
         print(len(self.grouped_by_day))
+
+    def _sum_sales_amount_in_euro(self):
+        return self.partner_dataFrame[self.partner_dataFrame['SalesAmountInEuro']
+                                      >= 0]['SalesAmountInEuro'].sum()
+
+    def _calculate_click_cost(self):
+        return (0.12 * self.sum_of_sales_amount_in_euro) / self.number_of_clicks_for_partner
+
+    def _group_partner_dataFrame_by_day(self):
+        for index, group in self.partner_dataFrame.groupby('click_timestamp'):
+            self.grouped_by_day.append(group)
