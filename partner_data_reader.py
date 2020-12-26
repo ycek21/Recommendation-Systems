@@ -29,3 +29,6 @@ class PartnerDataReader():
     def _group_partner_dataFrame_by_day(self):
         for index, group in self.partner_dataFrame.groupby('click_timestamp'):
             self.grouped_by_day.append(group)
+
+    def get_day(self, day_number):
+        return self.grouped_by_day[day_number]
