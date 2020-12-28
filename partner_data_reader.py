@@ -17,7 +17,7 @@ class PartnerDataReader():
 
         self._group_partner_dataFrame_by_day()
 
-        print(len(self.grouped_by_day))
+        # print(len(self.grouped_by_day))
 
     def _sum_sales_amount_in_euro(self):
         return self.partner_dataFrame[self.partner_dataFrame['SalesAmountInEuro']

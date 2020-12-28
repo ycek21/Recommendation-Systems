@@ -16,8 +16,6 @@ class partnerDataSplitter():
                                                  'product_country', 'product_id', 'product_title', 'partner_id', 'user_id'
                                                  ])
 
-        # criteo_as_dataFrame['click_timestamp'] = [datetime.fromtimestamp(
-        #     x) for x in criteo_as_dataFrame['click_timestamp']]
         sorted_criteo_as_dataFrame = criteo_as_dataFrame.sort_values(
             'click_timestamp')
         grouped_by_partner_id = sorted_criteo_as_dataFrame.groupby(
