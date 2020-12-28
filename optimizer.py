@@ -53,15 +53,16 @@ class Optimizer():
 
         if dates_subtraction.days > 1:
             for i in range(dates_subtraction.days - 1):
+                index = ((dates_subtraction.days - 1) + i)
                 day_to_add = today_date_as_date - \
-                    ((dates_subtraction.days - 1) + i)
+                    timedelta(days=index)
 
                 self.optimized_days.append(
                     self._generate_empty_day(day_to_add))
 
     def _generate_empty_day(self, date):
         return {
-            "day": date,
+            "day": datetime.strftime(date, '%Y-%m-%d'),
             "productsSeenSoFar": [],
             "productsToExclude": [],
             "productsActuallyExcluded": []
