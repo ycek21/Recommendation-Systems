@@ -28,6 +28,9 @@ from datetime import datetime
 
 # optimizer.log_optimized_days('C0F515F0A2D0A5D9F854008BA76EB537')
 
+
+# comparator
+
 with open('resources/validation_data/partner_riegiel_id_C0F515F0A2D0A5D9F854008BA76EB537.json') as notMyFile:
     Rigieldata = json.load(notMyFile)
 

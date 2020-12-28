@@ -53,7 +53,7 @@ class Optimizer():
 
         if dates_subtraction.days > 1:
             for i in range(dates_subtraction.days - 1):
-                index = ((dates_subtraction.days - 1) + i)
+                index = ((dates_subtraction.days - 1) - i)
                 day_to_add = today_date_as_date - \
                     timedelta(days=index)
 

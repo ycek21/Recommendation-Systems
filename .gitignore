@@ -128,3 +128,4 @@ criteoCategorized_as_category.csv
 partners/
 lablencoder.pickle
 resources/CriteoSearchData.csv
+*.json
