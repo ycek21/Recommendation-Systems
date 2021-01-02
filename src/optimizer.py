@@ -9,7 +9,7 @@ class Optimizer():
         self.data_from_partner = data_from_partner
         self.products_seen_so_far = []
         self.optimized_days = []
-        self.previous_day = None
+        self.previous_optimized_day = None
 
     def optimize_day(self, today_df: pd.DataFrame):
         products_to_exclude_tomorrow = []
@@ -39,23 +39,23 @@ class Optimizer():
         product_seen_so_far_set.update(todays_products_as_set)
 
         self.products_seen_so_far = sorted(list(product_seen_so_far_set))
-        self.previous_day = today_df['click_timestamp'].iloc[0]
+        self.previous_optimized_day = today_df['click_timestamp'].iloc[0]
 
     def _add_missing_days(self, today_date):
-        if(self.previous_day == None):
+        if(self.previous_optimized_day == None):
             return
 
         today_date_as_date = datetime.strptime(today_date, '%Y-%m-%d')
         previous_date_as_date = datetime.strptime(
-            self.previous_day, '%Y-%m-%d')
+            self.previous_optimized_day, '%Y-%m-%d')
 
         dates_subtraction = today_date_as_date - previous_date_as_date
 
         if dates_subtraction.days > 1:
             for i in range(dates_subtraction.days - 1):
-                index = ((dates_subtraction.days - 1) - i)
+                amount_of_days_to_subtract = ((dates_subtraction.days - 1) - i)
                 day_to_add = today_date_as_date - \
-                    timedelta(days=index)
+                    timedelta(days=amount_of_days_to_subtract)
 
                 self.optimized_days.append(
                     self._generate_empty_day(day_to_add))
