@@ -30,11 +30,9 @@ class Optimizer():
         products_actually_excluded_tomorrow = todays_products_as_set.intersection(
             products_to_exclude_tomorrow_as_set)
 
-        # print('products_actually_excluded_tomorrow',
-        #       sorted(list(products_actually_excluded_tomorrow)))
+        self._add_missing_days(today_df['click_timestamp'].iloc[0])
 
-        # TODO: calculate profit gain and sustained profit
-        # ? profit gain - należy wziąć dane z dzisiejszego dnia i zliczyć liczbę wystąpień productsActuallyExcluded
+        # TODO: add missing days
 
         actually_excluded_rows = today_df[today_df['product_id'].isin(
             list(products_actually_excluded_tomorrow))]
@@ -70,17 +68,17 @@ class Optimizer():
             self.accumulated_sustained_profit.append(
                 today_accumulated_sustained_profit)
 
-        today_profit_ratio = today_accumulated_sustained_profit / \
-            today_accumulated_profit_gain
+        # today_profit_ratio = (today_accumulated_sustained_profit /
+        #                       today_accumulated_profit_gain)
 
-        self.profit_ratio_list.append(today_profit_ratio)
+        # if(today_accumulated_profit_gain != 0):
+        #     self.profit_ratio_list.append(today_profit_ratio)
 
-        #
-        #
-        #
-        #
+        today_profit_ratio = (today_accumulated_profit_gain /
+                              today_accumulated_sustained_profit)
 
-        self._add_missing_days(today_df['click_timestamp'].iloc[0])
+        if(today_accumulated_sustained_profit != 0):
+            self.profit_ratio_list.append(today_profit_ratio)
 
         optimized_day = {
             "day": today_df['click_timestamp'].iloc[0],
@@ -99,6 +97,9 @@ class Optimizer():
 
     def _add_missing_days(self, today_date):
         if(self.previous_optimized_day == None):
+            # self.accumulated_profit_gain.append(0)
+            # self.accumulated_sustained_profit.append(0)
+
             return
 
         today_date_as_date = datetime.strptime(today_date, '%Y-%m-%d')
@@ -112,6 +113,14 @@ class Optimizer():
                 amount_of_days_to_subtract = ((dates_subtraction.days - 1) - i)
                 day_to_add = today_date_as_date - \
                     timedelta(days=amount_of_days_to_subtract)
+
+                self.profit_gain_list.append(0)
+                self.sustained_profit_list.append(0)
+                self.accumulated_profit_gain.append(
+                    self.accumulated_profit_gain[-1])
+                self.accumulated_sustained_profit.append(
+                    self.accumulated_sustained_profit[-1])
+                self.profit_ratio_list.append(self.profit_ratio_list[-1])
 
                 self.optimized_days.append(
                     self._generate_empty_day(day_to_add))
@@ -157,9 +166,5 @@ class Optimizer():
         number_of_clicks_in_day = len(data)
         partner_income = data[data['SalesAmountInEuro']
                               >= 0]['SalesAmountInEuro'].sum()
-
-        # print('calculate_profit: number_of_clicks_in_day \n',
-        #       number_of_clicks_in_day)
-        # print('calculate_profit: partner_income \n', partner_income)
 
         return (number_of_clicks_in_day * self.clickCost) - (partner_income * 0.22)

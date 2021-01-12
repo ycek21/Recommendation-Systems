@@ -4,6 +4,7 @@ from optimizer import Optimizer
 import json
 from datetime import datetime
 from matplotlib import pyplot as plt
+import pandas as pd
 
 
 class SimulationCore():
@@ -27,15 +28,37 @@ class SimulationCore():
         for index in range(len(optimizer.data_from_partner) - 1):
             optimizer.optimize_day(optimizer.data_from_partner[index])
 
-        # plt.plot(optimizer.profit_gain_list)
+        plt.plot(optimizer.profit_gain_list)
         # plt.plot(optimizer.sustained_profit_list)
 
         # plt.plot(optimizer.accumulated_profit_gain)
         # plt.plot(optimizer.accumulated_sustained_profit)
+        # print(optimizer.profit_ratio_list)
 
-        plt.plot(optimizer.profit_ratio_list)
+        # plt.plot(optimizer.profit_ratio_list)
 
         plt.show()
+
+        dataframe_dictionary = {'profit_gain_list': optimizer.profit_gain_list,
+                                'sustained_profit_list': optimizer.sustained_profit_list,
+                                'accumulated_profit_gain': optimizer.accumulated_profit_gain,
+                                'accumulated_sustained_profit': optimizer.accumulated_sustained_profit,
+                                'profit_ratio_list': optimizer.profit_ratio_list
+                                }
+        print('optimizer.profit_gain_list', len(optimizer.profit_gain_list))
+        print('optimizer.sustained_profit_list',
+              len(optimizer.sustained_profit_list))
+
+        print('optimizer.accumulated_profit_gain',
+              len(optimizer.accumulated_profit_gain))
+        print('optimizer.accumulated_sustained_profit',
+              len(optimizer.accumulated_sustained_profit))
+        print('optimizer.profit_ratio_list',
+              len(optimizer.profit_ratio_list))
+
+        dataframe = pd.DataFrame(dataframe_dictionary)
+
+        dataframe.to_csv('dataframeJE.csv')
 
         optimizer.log_optimized_days(partner_id)
 
