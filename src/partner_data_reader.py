@@ -20,6 +20,8 @@ class PartnerDataReader():
     def _sum_sales_amount_in_euro(self):
         return self.partner_dataFrame[self.partner_dataFrame['SalesAmountInEuro']
                                       >= 0]['SalesAmountInEuro'].sum()
+        # return self.partner_dataFrame[self.partner_dataFrame['Sale']
+        #                               == 1]['SalesAmountInEuro'].sum()
 
     def _calculate_click_cost(self):
         return (0.12 * self.sum_of_sales_amount_in_euro) / self.number_of_clicks_for_partner

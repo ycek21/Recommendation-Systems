@@ -5,17 +5,23 @@ from datetime import datetime, timedelta
 
 
 class Optimizer():
-    def __init__(self, data_from_partner):
+    def __init__(self, data_from_partner, clickCostForPartner):
         self.data_from_partner = data_from_partner
         self.products_seen_so_far = []
         self.optimized_days = []
+        self.clickCost = clickCostForPartner
         self.previous_optimized_day = None
+        self.profit_gain_list = []
+        self.sustained_profit_list = []
+        self.accumulated_profit_gain = []
+        self.accumulated_sustained_profit = []
+        self.profit_ratio_list = []
 
     def optimize_day(self, today_df: pd.DataFrame):
         products_to_exclude_tomorrow = []
 
         products_to_exclude_tomorrow = self.__get_excluded_products_pseudorandomly(
-            self.products_seen_so_far, 20, 12)
+            self.products_seen_so_far, 3.1, 12)
 
         products_to_exclude_tomorrow_as_set = set(products_to_exclude_tomorrow)
 
@@ -23,6 +29,56 @@ class Optimizer():
 
         products_actually_excluded_tomorrow = todays_products_as_set.intersection(
             products_to_exclude_tomorrow_as_set)
+
+        # print('products_actually_excluded_tomorrow',
+        #       sorted(list(products_actually_excluded_tomorrow)))
+
+        # TODO: calculate profit gain and sustained profit
+        # ? profit gain - należy wziąć dane z dzisiejszego dnia i zliczyć liczbę wystąpień productsActuallyExcluded
+
+        actually_excluded_rows = today_df[today_df['product_id'].isin(
+            list(products_actually_excluded_tomorrow))]
+
+        today_df_after_subtraction_actually_excluded_rows = today_df[~today_df['product_id'].isin(
+            list(products_actually_excluded_tomorrow))]
+
+        today_profit_gain = self.calculate_profit(actually_excluded_rows)
+
+        today_sustained_profit = self.calculate_profit(
+            today_df_after_subtraction_actually_excluded_rows)
+
+        today_sustained_profit = today_sustained_profit * -1
+
+        self.profit_gain_list.append(today_profit_gain)
+        self.sustained_profit_list.append(today_sustained_profit)
+
+        today_accumulated_profit_gain = 0
+        today_accumulated_sustained_profit = 0
+
+        if(len(self.accumulated_profit_gain) == 0):
+            today_accumulated_profit_gain = today_profit_gain
+            today_accumulated_sustained_profit = today_sustained_profit
+            self.accumulated_profit_gain.append(today_accumulated_profit_gain)
+            self.accumulated_sustained_profit.append(
+                today_accumulated_sustained_profit)
+        else:
+            today_accumulated_profit_gain = self.accumulated_profit_gain[-1] + \
+                today_profit_gain
+            today_accumulated_sustained_profit = self.accumulated_sustained_profit[-1] + \
+                today_sustained_profit
+            self.accumulated_profit_gain.append(today_accumulated_profit_gain)
+            self.accumulated_sustained_profit.append(
+                today_accumulated_sustained_profit)
+
+        today_profit_ratio = today_accumulated_sustained_profit / \
+            today_accumulated_profit_gain
+
+        self.profit_ratio_list.append(today_profit_ratio)
+
+        #
+        #
+        #
+        #
 
         self._add_missing_days(today_df['click_timestamp'].iloc[0])
 
@@ -96,3 +152,14 @@ class Optimizer():
             dummy_list_of_potentially_excluded_products,  dummy_how_many_products)
 
         return excluded_products
+
+    def calculate_profit(self, data: pd.DataFrame):
+        number_of_clicks_in_day = len(data)
+        partner_income = data[data['SalesAmountInEuro']
+                              >= 0]['SalesAmountInEuro'].sum()
+
+        # print('calculate_profit: number_of_clicks_in_day \n',
+        #       number_of_clicks_in_day)
+        # print('calculate_profit: partner_income \n', partner_income)
+
+        return (number_of_clicks_in_day * self.clickCost) - (partner_income * 0.22)
