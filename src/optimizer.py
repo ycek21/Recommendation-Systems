@@ -123,23 +123,50 @@ class Optimizer():
         today_df_after_subtraction_actually_excluded_rows = today_df[~today_df['product_id'].isin(
             list(products_actually_excluded_tomorrow))]
 
-        today_profit_gain = self._calculate_profit(actually_excluded_rows)
+        today_profit_gain = self._calculate_profit_gain(actually_excluded_rows)
 
-        today_sustained_profit = self._calculate_profit(
+        today_sustained_profit = self._calculate_sustained_profit(
             today_df_after_subtraction_actually_excluded_rows)
 
-        today_sustained_profit = today_sustained_profit * -1
+        today_accumulated_profit_gain, today_accumulated_sustained_profit = self._calculate_accumulated_profit_gain_and_sustained_profit(
+            today_profit_gain, today_sustained_profit)
 
+        # ? CALCULATE TODAY PROFIT RATIO
+
+        today_profit_ratio = (today_accumulated_profit_gain /
+                              today_accumulated_sustained_profit)
+        if(today_accumulated_sustained_profit != 0):
+            self.profit_ratio_list.append(today_profit_ratio)
+
+    def _calculate_profit(self, data: pd.DataFrame):
+        number_of_clicks_in_day = len(data)
+        partner_income = data[data['SalesAmountInEuro']
+                              >= 0]['SalesAmountInEuro'].sum()
+
+        return (number_of_clicks_in_day * self.clickCost) - (partner_income * 0.22)
+
+    def _calculate_profit_gain(self, actually_excluded_rows):
+        today_profit_gain = self._calculate_profit(actually_excluded_rows)
         self.profit_gain_list.append(today_profit_gain)
+        return today_profit_gain
+
+    def _calculate_sustained_profit(self, today_df_after_subtraction_actually_excluded_rows):
+        today_sustained_profit = self._calculate_profit(
+            today_df_after_subtraction_actually_excluded_rows)
+        today_sustained_profit = today_sustained_profit * -1
         self.sustained_profit_list.append(today_sustained_profit)
 
+        return today_sustained_profit
+
+    def _calculate_accumulated_profit_gain_and_sustained_profit(self, today_profit_gain, today_sustained_profit):
         today_accumulated_profit_gain = 0
         today_accumulated_sustained_profit = 0
 
         if(len(self.accumulated_profit_gain) == 0):
             today_accumulated_profit_gain = today_profit_gain
             today_accumulated_sustained_profit = today_sustained_profit
-            self.accumulated_profit_gain.append(today_accumulated_profit_gain)
+            self.accumulated_profit_gain.append(
+                today_accumulated_profit_gain)
             self.accumulated_sustained_profit.append(
                 today_accumulated_sustained_profit)
         else:
@@ -151,15 +178,4 @@ class Optimizer():
             self.accumulated_sustained_profit.append(
                 today_accumulated_sustained_profit)
 
-        today_profit_ratio = (today_accumulated_profit_gain /
-                              today_accumulated_sustained_profit)
-
-        if(today_accumulated_sustained_profit != 0):
-            self.profit_ratio_list.append(today_profit_ratio)
-
-    def _calculate_profit(self, data: pd.DataFrame):
-        number_of_clicks_in_day = len(data)
-        partner_income = data[data['SalesAmountInEuro']
-                              >= 0]['SalesAmountInEuro'].sum()
-
-        return (number_of_clicks_in_day * self.clickCost) - (partner_income * 0.22)
+        return today_accumulated_profit_gain, today_accumulated_sustained_profit
