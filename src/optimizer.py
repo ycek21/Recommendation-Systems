@@ -32,53 +32,8 @@ class Optimizer():
 
         self._add_missing_days(today_df['click_timestamp'].iloc[0])
 
-        # TODO: add missing days
-
-        actually_excluded_rows = today_df[today_df['product_id'].isin(
-            list(products_actually_excluded_tomorrow))]
-
-        today_df_after_subtraction_actually_excluded_rows = today_df[~today_df['product_id'].isin(
-            list(products_actually_excluded_tomorrow))]
-
-        today_profit_gain = self.calculate_profit(actually_excluded_rows)
-
-        today_sustained_profit = self.calculate_profit(
-            today_df_after_subtraction_actually_excluded_rows)
-
-        today_sustained_profit = today_sustained_profit * -1
-
-        self.profit_gain_list.append(today_profit_gain)
-        self.sustained_profit_list.append(today_sustained_profit)
-
-        today_accumulated_profit_gain = 0
-        today_accumulated_sustained_profit = 0
-
-        if(len(self.accumulated_profit_gain) == 0):
-            today_accumulated_profit_gain = today_profit_gain
-            today_accumulated_sustained_profit = today_sustained_profit
-            self.accumulated_profit_gain.append(today_accumulated_profit_gain)
-            self.accumulated_sustained_profit.append(
-                today_accumulated_sustained_profit)
-        else:
-            today_accumulated_profit_gain = self.accumulated_profit_gain[-1] + \
-                today_profit_gain
-            today_accumulated_sustained_profit = self.accumulated_sustained_profit[-1] + \
-                today_sustained_profit
-            self.accumulated_profit_gain.append(today_accumulated_profit_gain)
-            self.accumulated_sustained_profit.append(
-                today_accumulated_sustained_profit)
-
-        # today_profit_ratio = (today_accumulated_sustained_profit /
-        #                       today_accumulated_profit_gain)
-
-        # if(today_accumulated_profit_gain != 0):
-        #     self.profit_ratio_list.append(today_profit_ratio)
-
-        today_profit_ratio = (today_accumulated_profit_gain /
-                              today_accumulated_sustained_profit)
-
-        if(today_accumulated_sustained_profit != 0):
-            self.profit_ratio_list.append(today_profit_ratio)
+        self._calculate_indicators(
+            today_df, products_actually_excluded_tomorrow)
 
         optimized_day = {
             "day": today_df['click_timestamp'].iloc[0],
@@ -97,9 +52,6 @@ class Optimizer():
 
     def _add_missing_days(self, today_date):
         if(self.previous_optimized_day == None):
-            # self.accumulated_profit_gain.append(0)
-            # self.accumulated_sustained_profit.append(0)
-
             return
 
         today_date_as_date = datetime.strptime(today_date, '%Y-%m-%d')
@@ -113,14 +65,7 @@ class Optimizer():
                 amount_of_days_to_subtract = ((dates_subtraction.days - 1) - i)
                 day_to_add = today_date_as_date - \
                     timedelta(days=amount_of_days_to_subtract)
-
-                self.profit_gain_list.append(0)
-                self.sustained_profit_list.append(0)
-                self.accumulated_profit_gain.append(
-                    self.accumulated_profit_gain[-1])
-                self.accumulated_sustained_profit.append(
-                    self.accumulated_sustained_profit[-1])
-                self.profit_ratio_list.append(self.profit_ratio_list[-1])
+                self._add_missing_day_to_plots_data()
 
                 self.optimized_days.append(
                     self._generate_empty_day(day_to_add))
@@ -162,7 +107,57 @@ class Optimizer():
 
         return excluded_products
 
-    def calculate_profit(self, data: pd.DataFrame):
+    def _add_missing_day_to_plots_data(self):
+        self.profit_gain_list.append(0)
+        self.sustained_profit_list.append(0)
+        self.accumulated_profit_gain.append(
+            self.accumulated_profit_gain[-1])
+        self.accumulated_sustained_profit.append(
+            self.accumulated_sustained_profit[-1])
+        self.profit_ratio_list.append(self.profit_ratio_list[-1])
+
+    def _calculate_indicators(self, today_df, products_actually_excluded_tomorrow):
+        actually_excluded_rows = today_df[today_df['product_id'].isin(
+            list(products_actually_excluded_tomorrow))]
+
+        today_df_after_subtraction_actually_excluded_rows = today_df[~today_df['product_id'].isin(
+            list(products_actually_excluded_tomorrow))]
+
+        today_profit_gain = self._calculate_profit(actually_excluded_rows)
+
+        today_sustained_profit = self._calculate_profit(
+            today_df_after_subtraction_actually_excluded_rows)
+
+        today_sustained_profit = today_sustained_profit * -1
+
+        self.profit_gain_list.append(today_profit_gain)
+        self.sustained_profit_list.append(today_sustained_profit)
+
+        today_accumulated_profit_gain = 0
+        today_accumulated_sustained_profit = 0
+
+        if(len(self.accumulated_profit_gain) == 0):
+            today_accumulated_profit_gain = today_profit_gain
+            today_accumulated_sustained_profit = today_sustained_profit
+            self.accumulated_profit_gain.append(today_accumulated_profit_gain)
+            self.accumulated_sustained_profit.append(
+                today_accumulated_sustained_profit)
+        else:
+            today_accumulated_profit_gain = self.accumulated_profit_gain[-1] + \
+                today_profit_gain
+            today_accumulated_sustained_profit = self.accumulated_sustained_profit[-1] + \
+                today_sustained_profit
+            self.accumulated_profit_gain.append(today_accumulated_profit_gain)
+            self.accumulated_sustained_profit.append(
+                today_accumulated_sustained_profit)
+
+        today_profit_ratio = (today_accumulated_profit_gain /
+                              today_accumulated_sustained_profit)
+
+        if(today_accumulated_sustained_profit != 0):
+            self.profit_ratio_list.append(today_profit_ratio)
+
+    def _calculate_profit(self, data: pd.DataFrame):
         number_of_clicks_in_day = len(data)
         partner_income = data[data['SalesAmountInEuro']
                               >= 0]['SalesAmountInEuro'].sum()
